@@ -321,7 +321,7 @@ export const SEED_FEEDBACK = [
 
 export const SEED_ITINERARIES = [
   {
-    id: 'i1111111-1111-1111-1111-111111111111',
+    id: 'd1111111-1111-1111-1111-111111111111',
     user_id: '11111111-1111-1111-1111-111111111111',
     title: '3-Day Royal Heritage & Artisan Trail',
     destination: 'Jaipur, Rajasthan',

@@ -450,7 +450,7 @@ INSERT INTO itineraries (
     itinerary_data, total_estimated_cost, currency, created_at
 ) VALUES
 (
-    'i1111111-1111-1111-1111-111111111111',
+    'd1111111-1111-1111-1111-111111111111',
     '11111111-1111-1111-1111-111111111111',
     '3-Day Royal Heritage & Artisan Trail',
     'Jaipur, Rajasthan',

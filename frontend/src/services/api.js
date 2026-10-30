@@ -1,9 +1,16 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// Support both full base URLs (e.g. https://tripmate.onrender.com/api or https://tripmate.onrender.com) and local fallback
+let rawBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+let cleanBaseUrl = rawBaseUrl.trim().replace(/\/+$/, '');
+
+// Ensure /api prefix is present
+if (!cleanBaseUrl.endsWith('/api')) {
+  cleanBaseUrl = `${cleanBaseUrl}/api`;
+}
 
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: cleanBaseUrl,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -38,4 +45,3 @@ api.interceptors.response.use(
 );
 
 export default api;
-

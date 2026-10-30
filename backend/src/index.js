@@ -21,7 +21,7 @@ app.use(helmet({
   crossOriginResourcePolicy: false,
 }));
 
-// CORS configuration supporting local Vite dev & production frontend
+// CORS configuration supporting local dev, Vercel deployments, and custom domains
 const allowedOrigins = [
   ENV.CLIENT_URL,
   'http://localhost:5173',
@@ -31,11 +31,19 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: (origin, callback) => {
-    // allow requests with no origin (like mobile apps, curl, postman)
-    if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+    // Allow non-browser requests (mobile, server-to-server, curl)
+    if (!origin) return callback(null, true);
+    
+    // Allow listed origins, localhost, or any vercel.app preview/production deployment
+    if (
+      allowedOrigins.includes(origin) ||
+      origin.endsWith('.vercel.app') ||
+      origin.includes('localhost') ||
+      origin.includes('127.0.0.1')
+    ) {
       return callback(null, true);
     }
-    return callback(null, true); // Permissive for pairing
+    return callback(null, true); // Permissive for initial cloud pairing
   },
   credentials: true,
   methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
@@ -49,14 +57,33 @@ if (ENV.NODE_ENV !== 'test') {
   app.use(morgan('dev'));
 }
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
+// Root service welcome route (for cloud pingers and manual checks)
+app.get('/', (req, res) => {
   res.json({
+    service: 'TripMate AI Backend API',
+    status: 'online',
+    version: '1.0.0',
+    environment: ENV.NODE_ENV,
+    endpoints: {
+      health: '/api/health',
+      hotels: '/api/hotels',
+      auth: '/api/auth',
+      ai: '/api/ai',
+      complaints: '/api/complaints',
+      feedback: '/api/feedback',
+      analytics: '/api/analytics'
+    }
+  });
+});
+
+// Health check endpoint (Render zero-downtime healthCheckPath)
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
     service: 'TripMate AI Backend API',
     version: '1.0.0',
-    mode: process.env.NODE_ENV || 'development'
+    mode: ENV.NODE_ENV
   });
 });
 
@@ -80,14 +107,16 @@ app.use((req, res) => {
 // Centralized error handler
 app.use(errorHandler);
 
-// Start server
-const server = app.listen(ENV.PORT, () => {
+// Start server on all interfaces (0.0.0.0) for Render / cloud container support
+const HOST = '0.0.0.0';
+const PORT = Number(ENV.PORT) || 5000;
+
+const server = app.listen(PORT, HOST, () => {
   console.log(`=======================================================`);
-  console.log(` TripMate AI Backend running on http://localhost:${ENV.PORT}`);
-  console.log(` Health check: http://localhost:${ENV.PORT}/api/health`);
+  console.log(` TripMate AI Backend running on http://${HOST}:${PORT}`);
+  console.log(` Health check: http://${HOST}:${PORT}/api/health`);
   console.log(` Environment: ${ENV.NODE_ENV}`);
   console.log(`=======================================================`);
 });
 
 export default app;
-
